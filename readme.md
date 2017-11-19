@@ -31,8 +31,8 @@ JCertBot certbot = new JCertBot(directory, contactEmail);
  *                        true if you want to use Let's Encrypt.
  * @param organisation The organisation name that is coupled to the generated certificate. This is a required
  *                     option by Let's Encrypt.
- * @param keystorePassword The password of the keystore where the certificate is stored in. This is the password
- *                         of the output .jsk file.
+ * @param password The password of the keystore where the certificate is stored in. This is the password
+ *                 of the output .jsk file.
  * @param forceRequestNew Set this argument to true to force generate a new certificate and not check the validity
  *                        of any existing certificates.
  * @param useStaging If this argument is true, than the Let's Encrypt staging environment is used. This staging
@@ -45,7 +45,7 @@ JCertBot certbot = new JCertBot(directory, contactEmail);
  *                     you are running on.
  */
 try{
-    certbot.refreshCertificate("example.com", true, "Organisation", "Keystore Password", false, true);  
+    certbot.refreshCertificate(domainName, acceptAgreement, organisation, password, forceRequestNew, useStaging);  
 }catch (IOException e){
     e.printStackTrace();
 }

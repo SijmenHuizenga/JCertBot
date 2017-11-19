@@ -56,8 +56,8 @@ public class JCertBot {
      *                        true if you want to use Let's Encrypt.
      * @param organisation The organisation name that is coupled to the generated certificate. This is a required
      *                     option by Let's Encrypt.
-     * @param keystorePassword The password of the keystore where the certificate is stored in. This is the password
-     *                         of the output .jsk file.
+     * @param password The password of the keystore where the certificate is stored in. This is the password
+     *                 of the output .jsk file.
      * @param forceRequestNew Set this argument to true to force generate a new certificate and not check the validity
      *                        of any existing certificates.
      * @param useStaging If this argument is true, than the Let's Encrypt staging environment is used. This staging
@@ -70,7 +70,7 @@ public class JCertBot {
      *                     you are running on.
      */
     public void refreshCertificate(String domainName, boolean acceptAgreement, String organisation,
-                                   char[] keystorePassword, boolean forceRequestNew, boolean useStaging) throws IOException {
+                                   char[] password, boolean forceRequestNew, boolean useStaging) throws IOException {
         if(!acceptAgreement)
             throw new IOException("You must agree to the terms of service of Let's Encrypt. " +
                     "Read more here: https://letsencrypt.org/repository/)");
