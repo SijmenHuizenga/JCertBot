@@ -75,7 +75,7 @@ public class JCertBot {
             throw new IOException("You must agree to the terms of service of Let's Encrypt. " +
                     "Read more here: https://letsencrypt.org/repository/)");
 
-        CertDomain certDomain = new CertDomain(account, domainName, organisation, keystorePassword);
+        CertDomain certDomain = new CertDomain(account, domainName, organisation, password);
         if(!forceRequestNew && certDomain.isValid()) {
             LOGGER.info("Existing certificate is still valid for at least another 30 days. Not requesting new certificate.");
             return;
