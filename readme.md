@@ -51,9 +51,26 @@ try{
 }
 
 ```
+## Spring boot integration
+Add the following method in some component class and JCertBot will generate a certificate on startup.
 
+```java
+//schedule to run every day.
+@Scheduled(initialDelay = 86_400_000, fixedDelay = 86_400_000)
+@EventListener
+public void refreshCertificate(ContextRefreshedEvent event) throws IOException {
+    JCertBot bot = new JCertBot(Paths.get("./jcertbot"), "example@example.com");
+    bot.refreshCertificate(domainname, true, "Sijmen", password.toCharArray(), false, !production);
+}
+````
 
+In your `application.properties` add the following lines:
 
-
-
-    
+```properties
+server.port=443
+server.ssl.key-alias=domainname
+server.ssl.key-store=./jcertbot/domainname/certificate.jks
+server.ssl.key-store-password=password
+server.ssl.key-password=password
+server.ssl.key-store-type=JKS
+```

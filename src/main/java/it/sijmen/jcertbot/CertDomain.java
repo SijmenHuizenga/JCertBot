@@ -1,5 +1,6 @@
 package it.sijmen.jcertbot;
 
+import org.eclipse.jetty.util.ArrayUtil;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Registration;
@@ -19,8 +20,8 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 
 import static it.sijmen.jcertbot.JCertBot.newKeyPair;
 
@@ -83,8 +84,8 @@ class CertDomain {
         try (FileWriter fw = new FileWriter(getLastCsr().toFile())) {
             csrb.write(fw);
         }
-        X509Certificate certificate = downloadCertificate(requestCertificate);
-        storeCertificate(certificate);
+        DownloadResult certificate = downloadCertificate(requestCertificate);
+        storeCertificate(certificate, getDomainKeyPair());
 
         LOGGER.info("Requesting new certificate finished successfully. Certificate stored in {}.",
                 getCertificateJks().toAbsolutePath().toString());
@@ -101,13 +102,14 @@ class CertDomain {
 
     }
 
-    private X509Certificate downloadCertificate(Certificate certificate) throws IOException {
+    private DownloadResult downloadCertificate(Certificate certificate) throws IOException {
         LOGGER.debug("Downloading certificate...");
         for(int i =0; i < 20; i++) {
             try {
                 X509Certificate download = certificate.download();
+                X509Certificate[] downloadChain = certificate.downloadChain();
                 LOGGER.debug("Downloading certificate finished");
-                return download;
+                return new DownloadResult(download, downloadChain);
             } catch (Exception e) {
                 LOGGER.debug("Downloading certificate failed. Retrying in 3 seconds...", e);
             }
@@ -120,17 +122,34 @@ class CertDomain {
         throw new IOException("Downloading certificate failed.");
     }
 
-    private void storeCertificate(X509Certificate certificate) throws IOException {
+    class DownloadResult {
+        X509Certificate download;
+        X509Certificate[] downloadChain;
+
+        public DownloadResult(X509Certificate download, X509Certificate[] downloadChain) {
+            this.download = download;
+            this.downloadChain = downloadChain;
+        }
+    }
+
+    private void storeCertificate(DownloadResult certificate, KeyPair domainKeyPair) throws IOException {
         LOGGER.debug("Storing certificate in file {}", getCertificateJks().toAbsolutePath().toString());
         try (FileOutputStream bos = new FileOutputStream(getCertificateJks().toFile())) {
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(null);
-            ks.setCertificateEntry(domainName, certificate);
+            ks.setKeyEntry(domainName, domainKeyPair.getPrivate(), keystorePassword,
+                    concat(new X509Certificate[]{certificate.download}, certificate.downloadChain));
             ks.store(bos, keystorePassword);
             bos.close();
         } catch (Exception e) {
             throw new IOException(e);
         }
+    }
+
+    public static <T> T[] concat(T[] first, T[] second) {
+        T[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
     }
 
     private void doChallenge(Registration registration, String domain) throws IOException {
